@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTN.World - Three.js Experience</title>
+    <meta name="description" content="Expérience Three.js interactive hébergée sur Infomaniak">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="logo">OTN.World</div>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loading-progress"></div>
+            </div>
+            <div class="loading-text" id="loading-text">Initialisation...</div>
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
+        <header class="header">
+            <h1 class="title">OTN.World</h1>
+            <div class="subtitle">Three.js Experience</div>
+        </header>
+
+        <main id="canvas-container">
+            <canvas id="three-canvas"></canvas>
+        </main>
+
+        <div class="controls">
+            <button id="toggle-animation" class="btn">⏸️ Pause</button>
+            <button id="toggle-wireframe" class="btn">🔲 Wireframe</button>
+            <button id="change-color" class="btn">🎨 Couleur</button>
+            <button id="reset-camera" class="btn">📷 Reset</button>
+        </div>
+
+        <div class="info">
+            <div class="info-item">
+                <span class="label">FPS:</span>
+                <span id="fps-counter">60</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Triangles:</span>
+                <span id="triangle-count">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js depuis CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r158/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
