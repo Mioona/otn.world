@@ -9,12 +9,12 @@ const PORT = process.env.PORT || 8080;
 app.use(express.static('public'));
 app.use('/node_modules', express.static('node_modules'));
 
-// Headers pour Three.js
-app.use((req, res, next) => {
-  res.header('Cross-Origin-Embedder-Policy', 'require-corp');
-  res.header('Cross-Origin-Opener-Policy', 'same-origin');
-  next();
-});
+// NOTE: COOP/COEP désactivés pour compatibilité CDN/charges externes
+// app.use((req, res, next) => {
+//   res.header('Cross-Origin-Embedder-Policy', 'require-corp');
+//   res.header('Cross-Origin-Opener-Policy', 'same-origin');
+//   next();
+// });
 
 // Route principale
 app.get('/', (req, res) => {

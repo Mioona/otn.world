@@ -1,3 +1,5 @@
+import * as THREE from '/node_modules/three/build/three.module.js';
+
 // Variables globales
 let scene, camera, renderer, mesh;
 let animationId;
@@ -12,34 +14,27 @@ const config = {
     currentColorIndex: 0
 };
 
-// Loading Manager
-const loadingManager = new THREE.LoadingManager();
+// Fallback de chargement: enlève l'écran si rien à charger
 const loadingScreen = document.getElementById('loading-screen');
 const loadingProgress = document.getElementById('loading-progress');
 const loadingText = document.getElementById('loading-text');
 const app = document.getElementById('app');
 
-loadingManager.onStart = () => {
-    loadingText.textContent = 'Chargement des ressources...';
-};
-
-loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-    const progress = (itemsLoaded / itemsTotal) * 100;
-    loadingProgress.style.width = progress + '%';
-    loadingText.textContent = `Chargement... ${Math.round(progress)}%`;
-};
-
-loadingManager.onLoad = () => {
+// Timeout de secours au cas où aucune ressource n'est chargée
+setTimeout(() => {
+  if (loadingScreen && loadingScreen.style.display !== 'none') {
     loadingText.textContent = 'Initialisation terminée';
+    loadingProgress.style.width = '100%';
     setTimeout(() => {
-        loadingScreen.style.opacity = '0';
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-            app.style.display = 'block';
-            app.classList.add('fade-in');
-        }, 500);
-    }, 500);
-};
+      loadingScreen.style.opacity = '0';
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        app.style.display = 'block';
+        app.classList.add('fade-in');
+      }, 500);
+    }, 200);
+  }
+}, 1500);
 
 // Initialisation
 function init() {
@@ -99,11 +94,9 @@ function init() {
 }
 
 function setupLighting() {
-    // Lumière ambiante
     const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
     scene.add(ambientLight);
 
-    // Lumière directionnelle
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(10, 10, 5);
     directionalLight.castShadow = true;
@@ -111,7 +104,6 @@ function setupLighting() {
     directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    // Lumière colorée
     const pointLight = new THREE.PointLight(0x4ecdc4, 0.5, 50);
     pointLight.position.set(-5, 5, 5);
     scene.add(pointLight);
@@ -140,13 +132,8 @@ function createParticles() {
 }
 
 function setupEventListeners() {
-    // Redimensionnement
     window.addEventListener('resize', onWindowResize, false);
-
-    // Mouvement de la souris
     document.addEventListener('mousemove', onMouseMove, false);
-
-    // Contrôles
     document.getElementById('toggle-animation').addEventListener('click', toggleAnimation);
     document.getElementById('toggle-wireframe').addEventListener('click', toggleWireframe);
     document.getElementById('change-color').addEventListener('click', changeColor);
@@ -183,7 +170,7 @@ function changeColor() {
     config.currentColorIndex = (config.currentColorIndex + 1) % config.colors.length;
     const newColor = new THREE.Color(config.colors[config.currentColorIndex]);
     
-    // Animation de transition de couleur
+    // Transition douce de couleur
     const startColor = mesh.material.color.clone();
     let progress = 0;
     
@@ -222,22 +209,16 @@ function updateStats() {
     }
 }
 
-// Animation loop
 function animate() {
     animationId = requestAnimationFrame(animate);
     
     updateStats();
     
     if (isAnimating) {
-        // Rotation automatique
         mesh.rotation.x += 0.005;
         mesh.rotation.y += 0.01;
-        
-        // Interaction souris (lissée)
         mesh.rotation.x += (targetRotationX - mesh.rotation.x) * 0.05;
         mesh.rotation.y += (targetRotationY - mesh.rotation.y) * 0.05;
-        
-        // Pulsation subtile
         const scale = 1 + Math.sin(Date.now() * 0.001) * 0.1;
         mesh.scale.setScalar(scale);
     }
@@ -248,7 +229,6 @@ function animate() {
 // Démarrage
 init();
 
-// Gestion des erreurs
 window.addEventListener('error', (event) => {
     console.error('Erreur Three.js:', event.error);
 });
