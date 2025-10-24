@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
@@ -19,56 +19,34 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: 🔧 Install jq (JSON parser)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y jq
-
-    - name: 🔐 Load Infomaniak credentials from secret JSON
-      id: creds
-      run: |
-        # Write secret JSON to file
-        echo "${{ secrets.INFOMANIAK_SSH_NODEJS }}" > creds.json
-        # Parse values
-        HOST=$(jq -r '.host' creds.json)
-        USER=$(jq -r '.username' creds.json)
-        PASS=$(jq -r '.password' creds.json)
-        # Mask values in logs
-        echo "::add-mask::${PASS}"
-        # Export for next steps
-        echo "HOST=$HOST" >> $GITHUB_OUTPUT
-        echo "USER=$USER" >> $GITHUB_OUTPUT
-        echo "PASS=$PASS" >> $GITHUB_OUTPUT
-      shell: bash
-
-    - name: 🔧 Install dependencies (ci)
-      run: npm ci --omit=dev
+    - name: 🔧 Install dependencies
+      run: npm ci
 
     - name: 🚀 Deploy to Infomaniak (SFTP)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: ${{ steps.creds.outputs.HOST }}
-        username: ${{ steps.creds.outputs.USER }}
-        password: ${{ steps.creds.outputs.PASS }}
-        local-dir: './'
-        server-dir: '/web/'
+        server: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).host }}
+        username: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).username }}
+        password: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).password }}
+        local-dir: ./
+        server-dir: /web/
         exclude: |
           **/.git*
           **/.git*/**
           **/node_modules/**
-          .github/**
-          README.md
-          .gitignore
-          DEPLOYMENT.md
+          **/.vscode/**
+          **/.idea/**
+          **/README.md
+          **/DEPLOYMENT.md
+          **/.DS_Store
 
     - name: 🔄 Post-deploy (server install)
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ steps.creds.outputs.HOST }}
-        username: ${{ steps.creds.outputs.USER }}
-        password: ${{ steps.creds.outputs.PASS }}
+        host: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).host }}
+        username: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).username }}
+        password: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).password }}
         script: |
-          set -e
-          cd /web/
+          cd /web
           npm ci --omit=dev
-          echo "✅ Server dependencies installed"
+          echo "✅ Dependencies installed on server"
