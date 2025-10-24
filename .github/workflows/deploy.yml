@@ -19,19 +19,32 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
+    - name: 🔐 Load Infomaniak credentials from secret JSON
+      id: creds
+      run: |
+        # Write secret JSON to file
+        echo "${{ secrets.INFOMANIAK_SSH_NODEJS }}" > creds.json
+        # Parse values
+        HOST=$(jq -r '.host' creds.json)
+        USER=$(jq -r '.username' creds.json)
+        PASS=$(jq -r '.password' creds.json)
+        # Mask values in logs
+        echo "::add-mask::${PASS}"
+        # Export for next steps
+        echo "HOST=$HOST" >> $GITHUB_OUTPUT
+        echo "USER=$USER" >> $GITHUB_OUTPUT
+        echo "PASS=$PASS" >> $GITHUB_OUTPUT
+      shell: bash
+
     - name: 🔧 Install dependencies (ci)
       run: npm ci --omit=dev
-
-    - name: 🏗️ Build (skip for now)
-      run: |
-        echo "No build step defined. Skipping."
 
     - name: 🚀 Deploy to Infomaniak (SFTP)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: ${{ secrets.FTP_HOSTNAME }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
+        server: ${{ steps.creds.outputs.HOST }}
+        username: ${{ steps.creds.outputs.USER }}
+        password: ${{ steps.creds.outputs.PASS }}
         local-dir: './'
         server-dir: '/web/'
         exclude: |
@@ -46,12 +59,11 @@ jobs:
     - name: 🔄 Post-deploy (server install)
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        password: ${{ secrets.SSH_PASSWORD }}
+        host: ${{ steps.creds.outputs.HOST }}
+        username: ${{ steps.creds.outputs.USER }}
+        password: ${{ steps.creds.outputs.PASS }}
         script: |
           set -e
           cd /web/
           npm ci --omit=dev
           echo "✅ Server dependencies installed"
-          echo "ℹ️ Restart handled by platform if needed"
