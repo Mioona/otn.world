@@ -19,6 +19,11 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
+    - name: 🔧 Install jq (JSON parser)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
     - name: 🔐 Load Infomaniak credentials from secret JSON
       id: creds
       run: |
