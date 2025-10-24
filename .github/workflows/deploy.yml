@@ -20,7 +20,10 @@ jobs:
         cache: 'npm'
     
     - name: 🔧 Install dependencies
-      run: npm install
+      run: |
+        npm --version
+        node --version
+        npm install --no-audit --no-fund
     
     - name: 🏗️ Build project (if needed)
       run: |
@@ -53,5 +56,5 @@ jobs:
         script: |
           echo "🔄 Restarting Node.js application..."
           cd /web/
-          npm install --production
+          npm install --production --no-audit --no-fund
           echo "✅ Deployment completed!"
