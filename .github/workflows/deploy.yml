@@ -8,30 +8,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
-    
+
     - name: 📦 Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
-    
-    - name: 🔧 Install dependencies
+
+    - name: 🔧 Install dependencies (ci)
+      run: npm ci --omit=dev
+
+    - name: 🏗️ Build (skip for now)
       run: |
-        npm --version
-        node --version
-        npm install --no-audit --no-fund
-    
-    - name: 🏗️ Build project (if needed)
-      run: |
-        echo "✅ Dependencies installed"
-        echo "📊 Project structure:"
-        ls -la
-    
-    - name: 🚀 Deploy to Infomaniak
+        echo "No build step defined. Skipping."
+
+    - name: 🚀 Deploy to Infomaniak (SFTP)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_HOSTNAME }}
@@ -46,15 +41,17 @@ jobs:
           .github/**
           README.md
           .gitignore
-        
-    - name: 🔄 Restart Node.js App
+          DEPLOYMENT.md
+
+    - name: 🔄 Post-deploy (server install)
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          echo "🔄 Restarting Node.js application..."
+          set -e
           cd /web/
-          npm install --production --no-audit --no-fund
-          echo "✅ Deployment completed!"
+          npm ci --omit=dev
+          echo "✅ Server dependencies installed"
+          echo "ℹ️ Restart handled by platform if needed"
