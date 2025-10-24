@@ -17,11 +17,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
 
     - name: 🔧 Install dependencies
-      run: npm ci
-
+      run: npm install
     - name: 🚀 Deploy to Infomaniak (SFTP)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
@@ -48,5 +46,5 @@ jobs:
         password: ${{ fromJSON(secrets.INFOMANIAK_SSH_NODEJS).password }}
         script: |
           cd /web
-          npm ci --omit=dev
+          npm install --omit=dev
           echo "✅ Dependencies installed on server"
